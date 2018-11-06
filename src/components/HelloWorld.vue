@@ -11,33 +11,8 @@ import * as d3 from 'd3'
 
 export default {
   name: 'HelloWorld',
-  data () {
-    return {
-      endAngleScore: 4
-    }
-  },
   props: {
-    innerRadius: {
-      type: Number,
-      default: 21.5
-    },
-    outerRadius: {
-      type: Number,
-      default: 25
-    },
-    cornerRadius: {
-      type: Number,
-      default: 50
-    },
-    startAngle: {
-      type: Number,
-      default: 0
-    },
-    width: {
-      type: Number,
-      default: 100
-    },
-    height: {
+    size: {
       type: Number,
       default: 100
     },
@@ -50,21 +25,28 @@ export default {
 
     let circle = d3.select('#testCircle')
       .append('svg')
-      .attr('width', this.width)
-      .attr('height', this.height)
+      .attr('width', this.size)
+      .attr('height', this.size)
 
     let meter = circle.append('g')
-      .attr('transform', "translate(" + this.width / 2  + "," + this.height / 2 + ")")
+      .attr('transform', "translate(" + this.size / 2  + "," + this.size / 2 + ")")
 
-    let arc =  d3.arc()
-      .innerRadius(this.width / 2)
-      .outerRadius(this.width / 2.5)
-      .cornerRadius(this.cornerRadius)
-      .startAngle(this.startAngle)
+    let baseCircle = d3.arc()
+      .innerRadius(this.size / 2)
+      .outerRadius(this.size / 2.5)
+      .cornerRadius(0)
+      .startAngle(0)
+      .endAngle(6.283)
 
     meter.append('path')
-      .attr('d', this.baseCircleGenerator)
+      .attr('d', baseCircle)
       .attr('fill', '#e8eaed')
+
+    let arc =  d3.arc()
+      .innerRadius(this.size / 2)
+      .outerRadius(this.size / 2.5)
+      .cornerRadius(50)
+      .startAngle(0)
 
     let foreground = meter.append("path")
      .attr('id', 'animate')
@@ -79,10 +61,12 @@ export default {
       .style('alignment-baseline', 'central')
       .text(this.score)
 
+    let textSize = this.size / 2.6
+
     d3.select('text')
       .transition()
 			.duration(1000)
-      .attrTween('font-size', function(d){return d3.interpolate(3, 30)})
+      .attrTween('font-size', function(d){return d3.interpolate(3, textSize)})
 
     this.updateUI(foreground, arc);
 
@@ -104,15 +88,6 @@ export default {
     }
   },
   computed: {
-    baseCircleGenerator () {
-      return d3
-        .arc()
-        .innerRadius(this.width / 2)
-        .outerRadius(this.width / 2.5)
-        .cornerRadius(0)
-        .startAngle(0)
-        .endAngle(6.283)
-    },
     endAngleCalculation () {
       return this.score / 100 * 6.283
     },
