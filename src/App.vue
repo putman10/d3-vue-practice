@@ -1,7 +1,7 @@
 <template>
   <div id="app">
     <img alt="Vue logo" src="./assets/logo.png">
-    <HelloWorld :score='20' :height='100' :width='100'/>
+    <HelloWorld :score='78' :height='100' :width='100'/>
   </div>
 </template>
 

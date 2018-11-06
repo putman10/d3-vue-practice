@@ -13,7 +13,7 @@ export default {
   name: 'HelloWorld',
   data () {
     return {
-      endAngleScore: 0
+      endAngleScore: 4
     }
   },
   props: {
@@ -47,69 +47,63 @@ export default {
     }
   },
   mounted() {
-    this.iterate();
-    const circle = d3.select('#testCircle')
+
+    let circle = d3.select('#testCircle')
       .append('svg')
       .attr('width', this.width)
       .attr('height', this.height)
-      .append('g')
+
+    let meter = circle.append('g')
       .attr('transform', "translate(" + this.width / 2  + "," + this.height / 2 + ")")
 
-    circle.append('path')
+    let arc =  d3.arc()
+      .innerRadius(this.width / 2)
+      .outerRadius(this.width / 2.5)
+      .cornerRadius(this.cornerRadius)
+      .startAngle(this.startAngle)
+
+    meter.append('path')
       .attr('d', this.baseCircleGenerator)
       .attr('fill', '#e8eaed')
 
-    let pBar =  d3.arc()
-            .innerRadius(this.width / 2)
-            .outerRadius(this.width / 2.5)
-            .cornerRadius(this.cornerRadius)
-            .startAngle(this.startAngle)
-            .endAngle(this.endAngleCalculation)
+    let foreground = meter.append("path")
+     .attr('id', 'animate')
+     .attr('fill', this.fillColor)
+     .datum({endAngle: 0})
+     .attr("class", "background")
+     .attr("d", arc);
 
-    circle.append('path')
-      .attr('id', 'animate')
-      .attr('d', pBar)
-      .attr('fill', this.fillColor)
-
-    d3.select('#animate')
-        .transition()
-				.duration(1000)
-        .attr('d', pBar.startAngle(0).endAngle(5))
-
-    circle.append('text')
-    .style('font-weight', 700)
-    .style('text-anchor', 'middle')
-    .style('alignment-baseline', 'central')
-    .text(this.score)
+    meter.append('text')
+      .style('font-weight', 700)
+      .style('text-anchor', 'middle')
+      .style('alignment-baseline', 'central')
+      .text(this.score)
 
     d3.select('text')
-        .transition()
-				.duration(1000)
-        .attrTween('font-size', function(d){return d3.interpolate(3, 30)})
+      .transition()
+			.duration(1000)
+      .attrTween('font-size', function(d){return d3.interpolate(3, 30)})
+
+    this.updateUI(foreground, arc);
+
   },
   methods: {
-    iterate: function () {
-      let theScore = this.score
-      if (theScore === 100) theScore++
-      if (this.endAngleScore < theScore) {
-        this.endAngleScore += 1
-        setTimeout(this.iterate, 10)
-      }
+    updateUI(foreground, arc){
+      foreground.transition().duration(750).attrTween("d", this.arcTween(arc));
+    },
+    arcTween(arc) {
+      return (d) => {
+        let theEndAngle = this.endAngleCalculation
+        if (this.endAngleCalculation === 6.283) theEndAngle = 7
+        const interpolate = d3.interpolate(0, theEndAngle);
+        return (t) => {
+          d.endAngle = interpolate(t);
+          return arc(d);
+        };
+      };
     }
   },
   computed: {
-    arcGenerator () {
-      return d3
-        .arc()
-        .innerRadius(this.width / 2)
-        .outerRadius(this.width / 2.5)
-        .cornerRadius(this.cornerRadius)
-        .startAngle(this.startAngle)
-        .endAngle(this.endAngleCalculation)
-    },
-    d () {
-      return this.arcGenerator()
-    },
     baseCircleGenerator () {
       return d3
         .arc()
