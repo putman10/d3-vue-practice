@@ -1,58 +1,136 @@
 <template>
   <div class="hello">
-    <h1>{{ msg }}</h1>
-    <p>
-      For guide and recipes on how to configure / customize this project,<br>
-      check out the
-      <a href="https://cli.vuejs.org" target="_blank" rel="noopener">vue-cli documentation</a>.
-    </p>
-    <h3>Installed CLI Plugins</h3>
-    <ul>
-      <li><a href="https://github.com/vuejs/vue-cli/tree/dev/packages/%40vue/cli-plugin-babel" target="_blank" rel="noopener">babel</a></li>
-      <li><a href="https://github.com/vuejs/vue-cli/tree/dev/packages/%40vue/cli-plugin-eslint" target="_blank" rel="noopener">eslint</a></li>
-    </ul>
-    <h3>Essential Links</h3>
-    <ul>
-      <li><a href="https://vuejs.org" target="_blank" rel="noopener">Core Docs</a></li>
-      <li><a href="https://forum.vuejs.org" target="_blank" rel="noopener">Forum</a></li>
-      <li><a href="https://chat.vuejs.org" target="_blank" rel="noopener">Community Chat</a></li>
-      <li><a href="https://twitter.com/vuejs" target="_blank" rel="noopener">Twitter</a></li>
-      <li><a href="https://news.vuejs.org" target="_blank" rel="noopener">News</a></li>
-    </ul>
-    <h3>Ecosystem</h3>
-    <ul>
-      <li><a href="https://router.vuejs.org" target="_blank" rel="noopener">vue-router</a></li>
-      <li><a href="https://vuex.vuejs.org" target="_blank" rel="noopener">vuex</a></li>
-      <li><a href="https://github.com/vuejs/vue-devtools#vue-devtools" target="_blank" rel="noopener">vue-devtools</a></li>
-      <li><a href="https://vue-loader.vuejs.org" target="_blank" rel="noopener">vue-loader</a></li>
-      <li><a href="https://github.com/vuejs/awesome-vue" target="_blank" rel="noopener">awesome-vue</a></li>
-    </ul>
+    <h3>This is an element setup to test D3</h3>
+    <div id='testCircle'></div>
   </div>
 </template>
 
 <script>
+
+import * as d3 from 'd3'
+
 export default {
   name: 'HelloWorld',
+  data () {
+    return {
+      endAngleScore: 0
+    }
+  },
   props: {
-    msg: String
+    innerRadius: {
+      type: Number,
+      default: 21.5
+    },
+    outerRadius: {
+      type: Number,
+      default: 25
+    },
+    cornerRadius: {
+      type: Number,
+      default: 50
+    },
+    startAngle: {
+      type: Number,
+      default: 0
+    },
+    width: {
+      type: Number,
+      default: 100
+    },
+    height: {
+      type: Number,
+      default: 100
+    },
+    score: {
+      type: Number,
+      default: 75
+    }
+  },
+  mounted() {
+    this.iterate();
+    const circle = d3.select('#testCircle')
+      .append('svg')
+      .attr('width', this.width)
+      .attr('height', this.height)
+      .append('g')
+      .attr('transform', "translate(" + this.width / 2  + "," + this.height / 2 + ")")
+
+    circle.append('path')
+      .attr('d', this.baseCircleGenerator)
+      .attr('fill', '#e8eaed')
+
+    let pBar =  d3.arc()
+            .innerRadius(this.width / 2)
+            .outerRadius(this.width / 2.5)
+            .cornerRadius(this.cornerRadius)
+            .startAngle(this.startAngle)
+            .endAngle(this.endAngleCalculation)
+
+    circle.append('path')
+      .attr('id', 'animate')
+      .attr('d', pBar)
+      .attr('fill', this.fillColor)
+
+    d3.select('#animate')
+        .transition()
+				.duration(1000)
+        .attr('d', pBar.startAngle(0).endAngle(5))
+
+    circle.append('text')
+    .style('font-weight', 700)
+    .style('text-anchor', 'middle')
+    .style('alignment-baseline', 'central')
+    .text(this.score)
+
+    d3.select('text')
+        .transition()
+				.duration(1000)
+        .attrTween('font-size', function(d){return d3.interpolate(3, 30)})
+  },
+  methods: {
+    iterate: function () {
+      let theScore = this.score
+      if (theScore === 100) theScore++
+      if (this.endAngleScore < theScore) {
+        this.endAngleScore += 1
+        setTimeout(this.iterate, 10)
+      }
+    }
+  },
+  computed: {
+    arcGenerator () {
+      return d3
+        .arc()
+        .innerRadius(this.width / 2)
+        .outerRadius(this.width / 2.5)
+        .cornerRadius(this.cornerRadius)
+        .startAngle(this.startAngle)
+        .endAngle(this.endAngleCalculation)
+    },
+    d () {
+      return this.arcGenerator()
+    },
+    baseCircleGenerator () {
+      return d3
+        .arc()
+        .innerRadius(this.width / 2)
+        .outerRadius(this.width / 2.5)
+        .cornerRadius(0)
+        .startAngle(0)
+        .endAngle(6.283)
+    },
+    endAngleCalculation () {
+      return this.score / 100 * 6.283
+    },
+    fillColor () {
+      if (this.score > 90) return '#028038'
+      else if (this.score > 50) return '#ec7800'
+      else return '#c7221f'
+    }
   }
 }
 </script>
 
-<!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
-h3 {
-  margin: 40px 0 0;
-}
-ul {
-  list-style-type: none;
-  padding: 0;
-}
-li {
-  display: inline-block;
-  margin: 0 10px;
-}
-a {
-  color: #42b983;
-}
+
 </style>
